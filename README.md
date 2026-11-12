@@ -1,0 +1,9 @@
+# NutriSync Student Nutrition Dashboard
+
+A static, browser-based student nutrition dashboard.
+
+## GitHub Pages
+
+The `main` branch deploys automatically through GitHub Actions. Enable GitHub Pages for this repository with **Settings → Pages → Build and deployment → Source: GitHub Actions** if it is not already enabled.
+
+The dashboard stores profile, meal, and lab entries in the visitor's browser LocalStorage. ESP32 polling uses `http://localhost:5000/api/logs`, so it only connects to a backend running on the same device as the visitor's browser.
