@@ -202,23 +202,6 @@
                 </div>
             </div>
 
-            <!-- Integration Instructions -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
-                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
-                    <i data-lucide="code" class="w-4 h-4 text-emerald-400"></i> How To Integrate With Python Backend
-                </h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    1. Save this file as <code class="text-emerald-400 font-mono">oled_simulator.html</code> inside your main system directory.<br>
-                    2. To make Flask serve this screen directly, update your <code class="text-emerald-400 font-mono">capture_trigger.py</code> route:<br>
-                    <code class="block bg-slate-950 p-2 rounded text-[11px] font-mono text-slate-300 mt-1 border border-slate-800">
-                    @app.route('/oled')<br>
-                    def oled_screen():<br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;return send_file('oled_simulator.html')
-                    </code>
-                    3. Turn on <b>Backend Polling</b> in the top right to automatically trigger this OLED sequence whenever your hardware button logs a meal to <code class="text-emerald-400 font-mono">/api/logs</code>!
-                </p>
-            </div>
-
         </div>
 
     </main>
