@@ -1,0 +1,58 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Food model learning loop</title><style>
+:root{color-scheme:dark;--bg:#111513;--paper:#1c2420;--ink:#e4e9df;--line:#48544b;--mid:#38443b;--lo:#252e29;--lit:#f2c66d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 0,#26332b,#111513 70%);color:var(--ink);font:15px/1.5 system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;padding:24px}.card{width:min(920px,100%);border:1px solid #3c4940;border-radius:16px;background:#171e1a;box-shadow:0 24px 80px #0008;overflow:hidden}.head{padding:18px 22px 10px;display:flex;justify-content:space-between;color:#aeb9ad;font-size:12px;letter-spacing:.1em;text-transform:uppercase}.title{font-size:22px;color:var(--ink);letter-spacing:0;text-transform:none}.machine{width:100%;height:auto;display:block;cursor:pointer}.controls{display:flex;flex-wrap:wrap;gap:8px;padding:12px 22px}.controls button{border:1px solid #48564c;color:#dce3db;background:#202923;border-radius:999px;padding:8px 12px;cursor:pointer}.controls button:hover,.controls button.active{border-color:var(--lit);color:var(--lit)}.readout{padding:0 22px 10px;color:var(--lit);font-weight:650}.foot{border-top:1px solid #303b33;padding:14px 22px 18px;color:#b7c1b7}.foot b{color:#e9eee6}.sub{font-size:13px;color:#97a397}
+</style><style>.dashboard{margin:0 22px 18px;padding:14px;border:1px solid #3a473d;border-radius:12px;background:#131915}.dashboard header{display:flex;justify-content:space-between;gap:12px;color:#dce4d9;font-size:14px}.dashboard header span{font-size:10px;letter-spacing:.1em;color:#a4b1a4}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}.metrics div{padding:9px;background:#202923;border-radius:8px}.metrics strong,.metrics small{display:block}.metrics strong{font-size:20px;color:#f2c66d}.metrics small{font-size:11px;color:#a9b4a8}.review{display:flex;flex-direction:column;padding:10px 12px;border-left:2px solid #f2c66d;background:#1b231d;gap:3px}.review span{font-size:12px;color:#abb6aa}@media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr)}.dashboard header{flex-direction:column}}</style></head><body><main class="card"><div class="head"><span>FIG 01 · INTERACTIVE EXPLAINER</span><span class="title">Adaptive food intelligence</span></div>
+<svg class="machine" viewBox="0 0 900 480" role="img" aria-label="Isometric food-learning machine with meal tray, camera, model processor, correction wheel and labeled-example spool">
+<defs><linearGradient id="metal" x2="0" y2="1"><stop stop-color="#59685c"/><stop offset="1" stop-color="#303b34"/></linearGradient><linearGradient id="curry" x2="0" y2="1"><stop stop-color="#d7a34b"/><stop offset="1" stop-color="#8d4e27"/></linearGradient><filter id="shadow"><feGaussianBlur stdDeviation="9"/></filter></defs>
+<ellipse cx="450" cy="410" rx="300" ry="28" fill="#0008" filter="url(#shadow)"/>
+<!-- base instrument bed -->
+<path d="M170 326 485 237 744 311 422 407Z" fill="#202923" stroke="#738076" stroke-width="2"/><path d="m170 326 252 81v18l-252-82z" fill="#151b17" stroke="#48544b"/><path d="m422 407 322-96v18l-322 96z" fill="#29332c" stroke="#48544b"/>
+<path d="m190 323 291-82 235 68-294 85z" fill="url(#metal)" stroke="#89958a" stroke-width="2"/><path d="m206 324 276-76 210 61-281 80z" fill="#202923" stroke="#69766b"/>
+<!-- feet and screw heads -->
+<g fill="#18201b" stroke="#889489"><ellipse cx="215" cy="376" rx="13" ry="6"/><ellipse cx="422" cy="437" rx="13" ry="6"/><ellipse cx="710" cy="350" rx="13" ry="6"/><ellipse cx="488" cy="278" rx="13" ry="6"/></g>
+<g fill="#b4c0b5"><circle cx="220" cy="321" r="3"/><circle cx="478" cy="254" r="3"/><circle cx="680" cy="311" r="3"/><circle cx="422" cy="389" r="3"/></g>
+<!-- sample tray -->
+<path d="m242 316 126-36 111 32-126 37z" fill="#667267" stroke="#bec6b8" stroke-width="2"/><path d="m251 313 116-33 95 28-116 34z" fill="#a7a28b" stroke="#ded6ba" stroke-width="2"/>
+<!-- curry bowl + curry top, paneer -->
+<ellipse cx="324" cy="307" rx="43" ry="15" fill="#d7c8a4" stroke="#f0e4c7" stroke-width="3"/><ellipse cx="324" cy="302" rx="36" ry="12" fill="url(#curry)" stroke="#f4d58a" stroke-width="2"/>
+<g fill="#f1dbab" stroke="#fff0c8" stroke-width="1"><path d="m303 299 8-4 7 3-8 4z"/><path d="m324 304 8-4 7 3-8 4z"/><path d="m338 297 7-3 6 3-8 4z"/><path d="m312 306 6-3 6 3-7 3z"/></g>
+<g fill="#712f20"><circle cx="300" cy="303" r="2"/><circle cx="331" cy="296" r="2"/><circle cx="343" cy="305" r="2"/></g>
+<!-- roti -->
+<ellipse cx="409" cy="324" rx="31" ry="12" fill="#d7ad6e" stroke="#f3d69c" stroke-width="2"/><path d="M382 323q26-13 54 0M388 328q18-9 42-1" fill="none" stroke="#9c683b" stroke-width="2"/><g fill="#754728"><circle cx="399" cy="320" r="2"/><circle cx="417" cy="326" r="2"/><circle cx="405" cy="330" r="1.5"/></g>
+<!-- camera gantry supports -->
+<path d="M490 252v-126l12-4v133zM668 306V172l12-4v141z" fill="url(#metal)" stroke="#98a398" stroke-width="2"/>
+<path d="m491 129 178 43 12-5-178-44z" fill="#617064" stroke="#a6b0a4" stroke-width="2"/>
+<!-- camera housing and lens -->
+<path d="m526 144 65-18 54 16-66 20z" fill="#505d52" stroke="#b0baae" stroke-width="2"/><path d="m543 144 48-13 38 12-49 14z" fill="#202923" stroke="#879487"/>
+<ellipse cx="584" cy="149" rx="17" ry="8" fill="#121916" stroke="#e8c86f" stroke-width="2"/><ellipse cx="584" cy="149" rx="8" ry="4" fill="#7d9c8d"/><circle cx="584" cy="149" r="2" fill="#eaf2df"/>
+<!-- dotted scan ray -->
+<path d="m584 159-220 127" stroke="#e7c76a" stroke-width="2" stroke-dasharray="3 6" opacity=".85"/>
+<!-- processor module -->
+<path d="m680 224 98-28 55 16-99 30z" fill="#364239" stroke="#8b9a8c" stroke-width="2"/><path d="m680 224v95l54 17v-94z" fill="#222b25" stroke="#768477"/><path d="m734 242 99-30v96l-99 28z" fill="#303a32" stroke="#879388"/>
+<g fill="#1a211c" stroke="#9ba99c"><path d="m750 249 63-19v14l-63 19z"/><path d="m750 276 63-19v14l-63 19z"/><path d="m750 303 63-19v14l-63 19z"/></g><g fill="#e7c76a"><circle cx="801" cy="245" r="3"/><circle cx="801" cy="272" r="3"/><circle cx="801" cy="299" r="3"/></g>
+<!-- correction wheel and example spool -->
+<ellipse cx="523" cy="359" rx="22" ry="11" fill="#111713" stroke="#92a093" stroke-width="2"/><path d="M501 359v-23q22-10 44 0v23" fill="#344036" stroke="#a3afa3" stroke-width="2"/><ellipse cx="523" cy="336" rx="22" ry="10" fill="#566456" stroke="#c4cbbf" stroke-width="2"/><circle cx="523" cy="336" r="7" fill="#202923" stroke="#e7c76a" stroke-width="2"/>
+<path d="m597 366 31-9 21 6-31 10z" fill="#69776a" stroke="#bdc7b9"/><ellipse cx="618" cy="362" rx="11" ry="5" fill="#252e29" stroke="#c2cabc"/><path d="m607 362v-25l11-4v29m11-1v-24l10-3v25" fill="none" stroke="#c3cbbf" stroke-width="3"/>
+<!-- labels on plane -->
+<g font-family="system-ui" font-size="12" font-weight="600" fill="#dce4d9"><text x="245" y="360">MEAL SAMPLE</text><text x="545" y="188">CAMERA</text><text x="739" y="345">FOOD AI</text><text x="491" y="390">REVIEW QUEUE</text><text x="593" y="397">VERIFIED DATA</text></g>
+<!-- moving signal dots -->
+<circle id="signal" cx="0" cy="0" r="5" fill="#f2c66d" stroke="#fff3cd" stroke-width="2"/>
+</svg>
+<div class="controls" id="controls"></div><div class="readout" id="readout" aria-live="polite"></div><section class="dashboard"><header><b>Food AI Learning Centre</b><span id="status">SYSTEM ONLINE · DEMO DATA</span></header><div class="metrics"><div><strong>12,450</strong><small>images processed</small></div><div><strong id="queue">326</strong><small>awaiting expert review</small></div><div><strong>1,840</strong><small>verified examples</small></div><div><strong id="version">v1.4</strong><small>deployed model</small></div></div><div class="review"><b id="review-title">Review queue · similar uncertain curries grouped</b><span id="review-copy">Possible Shahi Paneer · model says Paneer Butter Masala · needs expert verification</span></div></section>
+<div class="foot"><b>Calories are a separate estimate.</b> Dish recognition can suggest a recipe, but calorie estimates also need portion size and ingredient assumptions. A single photo gives a rough estimate.<div class="sub">Illustrative concept demo; predictions and dashboard figures are simulated, not live model output.</div></div></main>
+<script>
+const steps=[
+["1 · Customer upload","Customer takes a meal photo. The app requests consent for any image use; no teaching questions are asked."],
+["2 · Food result","YOLO detects food regions; a food classifier names dishes; portion estimation and nutrition lookup produce an estimated result."],
+["3 · Uncertainty flag","The background engine spots an unfamiliar or ambiguous curry prediction and flags it for possible review."],
+["4 · Select useful cases","Similar images are grouped; active learning selects informative examples and recurring errors, rather than sending every photo to humans."],
+["5 · Expert verification","A food annotator or chef checks the selected image and verifies Paneer Butter Masala, Shahi Paneer, or another label."],
+["6 · Verified dataset","Confirmed labels, visual characteristics, and nutrition references enter a reviewed training database."],
+["7 · Retrain and test","The model is fine-tuned in batches and evaluated against held-out, previously unseen images."],
+["8 · Validated release","Only a model that passes evaluation is versioned and deployed to the Food Intelligence Engine."],
+["9 · Better next result","Future customers benefit from the improved model; improvement is gradual, not triggered by every single photo."]];
+const controls=document.querySelector("#controls"),out=document.querySelector("#readout"),signal=document.querySelector("#signal");const q=document.querySelector("#queue"),v=document.querySelector("#version"),rt=document.querySelector("#review-title"),rc=document.querySelector("#review-copy");let i=0;
+steps.forEach((s,n)=>{const b=document.createElement("button");b.textContent=s[0];b.onclick=()=>show(n);controls.append(b)});
+function show(n){i=(n+steps.length)%steps.length;out.textContent=steps[i][0]+" — "+steps[i][1];[...controls.children].forEach((b,j)=>b.classList.toggle("active",j===i));const pts=[[360,287],[770,247],[523,336],[523,336],[523,336],[618,362],[770,247],[770,247],[360,287]];signal.setAttribute("cx",pts[i][0]);signal.setAttribute("cy",pts[i][1]);q.textContent=i>=5?"325":"326";v.textContent=i>=8?"v1.5":"v1.4";rt.textContent=i===4?"Expert review · label verified":i>=5?"Training pipeline · reviewed batch":"Review queue · similar uncertain curries grouped";rc.textContent=i===4?"Verified: Paneer Butter Masala · evidence added to reviewed dataset":i>=5?"Candidate v1.5 evaluated on held-out images before release":"Possible Shahi Paneer · model says Paneer Butter Masala · needs expert verification"};
+document.querySelector("svg").onclick=()=>show(i+1);document.addEventListener("keydown",e=>{if(e.key==="ArrowRight")show(i+1);if(e.key==="ArrowLeft")show(i-1)});show(0);
+</script></body></html>
+
