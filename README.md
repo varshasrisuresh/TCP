@@ -4,6 +4,8 @@ A static, browser-based student nutrition dashboard.
 
 ## Dashboard
 
+Open the [1.96-inch OLED Display Simulator](./1_96_inch_oled_display_simulator.html).
+
 Open the [Student Nutrition Dashboard](./student_nutrition_dashboard.html).
 
 ## GitHub Pages
