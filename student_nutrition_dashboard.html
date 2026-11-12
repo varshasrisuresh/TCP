@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriSync - Student Nutrition & Health Dashboard</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Custom Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="h-full font-sans antialiased bg-slate-950 text-slate-100 flex flex-col min-h-screen">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="sticky top-0 z-30 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-bold text-xl shadow-lg shadow-emerald-500/20">
+        <i class="fa-solid fa-leaf"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-teal-200 bg-clip-text text-transparent">NutriSync AI</h1>
+        <p class="text-xs text-slate-400">Hardware-Synced Student Health Portal</p>
+      </div>
+    </div>
+
+    <!-- Live Sync Hardware Status Badge -->
+    <div class="flex items-center space-x-4">
+      <div class="hidden sm:flex items-center space-x-2 bg-slate-800/80 border border-slate-700/60 rounded-full px-3 py-1 text-xs">
+        <span id="syncIndicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span id="syncStatusText" class="text-slate-300 font-medium">ESP32 Cam Synced (localhost:5000)</span>
+      </div>
+      
+      <button onclick="openProfileModal()" class="flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold px-3 py-1.5 rounded-lg text-xs transition duration-200 shadow-md shadow-emerald-500/10">
+        <i class="fa-solid fa-user-gear"></i>
+        <span class="hidden sm:inline">Edit Health Profile</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+    <!-- ALERT / AI RECOMMENDATIONS BANNER -->
+    <section id="aiInsightSection" class="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800/90 to-slate-900 border border-emerald-500/30 shadow-xl relative overflow-hidden">
+      <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
+        <div class="flex items-start space-x-3">
+          <div class="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 mt-0.5">
+            <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h2 class="font-bold text-slate-100 text-sm md:text-base">AI Health Insights & Deficiencies</h2>
+              <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold px-2 py-0.5 rounded-full uppercase">Real-time</span>
+            </div>
+            <p id="aiInsightText" class="text-xs md:text-sm text-slate-300 mt-1">Analyzing intake & lab reports... Loading targets.</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2 w-full md:w-auto justify-end border-t border-slate-800 md:border-none pt-2 md:pt-0">
+          <button onclick="triggerSimulatedHardwareLog()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-2 rounded-lg transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-camera"></i>
+            <span>Simulate Hardware Capture</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- METRICS & PROFILE SUMMARY ROW -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      
+      <!-- Calorie Target Card -->
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+          <span>Calories Intake</span>
+          <i class="fa-solid fa-fire text-amber-500"></i>
+        </div>
+        <div class="my-2">
+          <div class="text-2xl font-black text-slate-100" id="statCalories">0 / 2200 <span class="text-xs font-normal text-slate-400">kcal</span></div>
+          <div class="w-full bg-slate-800 rounded-full h-2 mt-2 overflow-hidden">
+            <div id="barCalories" class="bg-amber-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+        <span class="text-[11px] text-slate-400" id="statCaloriesPercent">0% of daily target</span>
+      </div>
+
+      <!-- Protein Card -->
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+          <span>Protein</span>
+          <i class="fa-solid fa-dumbbell text-rose-400"></i>
+        </div>
+        <div class="my-2">
+          <div class="text-2xl font-black text-slate-100" id="statProtein">0 / 130 <span class="text-xs font-normal text-slate-400">g</span></div>
+          <div class="w-full bg-slate-800 rounded-full h-2 mt-2 overflow-hidden">
+            <div id="barProtein" class="bg-rose-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+        <span class="text-[11px] text-slate-400" id="statProteinPercent">0% of daily target</span>
+      </div>
+
+      <!-- Carbs Card -->
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+          <span>Carbohydrates</span>
+          <i class="fa-solid fa-wheat-awn text-cyan-400"></i>
+        </div>
+        <div class="my-2">
+          <div class="text-2xl font-black text-slate-100" id="statCarbs">0 / 270 <span class="text-xs font-normal text-slate-400">g</span></div>
+          <div class="w-full bg-slate-800 rounded-full h-2 mt-2 overflow-hidden">
+            <div id="barCarbs" class="bg-cyan-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+        <span class="text-[11px] text-slate-400" id="statCarbsPercent">0% of daily target</span>
+      </div>
+
+      <!-- Fats Card -->
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+          <span>Healthy Fats</span>
+          <i class="fa-solid fa-oil-well text-emerald-400"></i>
+        </div>
+        <div class="my-2">
+          <div class="text-2xl font-black text-slate-100" id="statFats">0 / 70 <span class="text-xs font-normal text-slate-400">g</span></div>
+          <div class="w-full bg-slate-800 rounded-full h-2 mt-2 overflow-hidden">
+            <div id="barFats" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+        <span class="text-[11px] text-slate-400" id="statFatsPercent">0% of daily target</span>
+      </div>
+
+      <!-- User Profile Bio Card -->
+      <div class="bg-gradient-to-br from-slate-900 to-slate-900/90 border border-emerald-500/20 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+          <span class="text-xs text-emerald-400 font-semibold tracking-wide uppercase">User Profile</span>
+          <span id="profileLastUpdated" class="text-[10px] text-slate-500">Updated: Today</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 my-2 text-xs">
+          <div><span class="text-slate-400">BMI:</span> <strong id="profileBMI" class="text-slate-200">22.4</strong></div>
+          <div><span class="text-slate-400">BMR:</span> <strong id="profileBMR" class="text-slate-200">1650</strong> kcal</div>
+          <div><span class="text-slate-400">TDEE:</span> <strong id="profileTDEE" class="text-slate-200">2200</strong> kcal</div>
+          <div><span class="text-slate-400">Level:</span> <strong id="profileActivity" class="text-slate-200">Active</strong></div>
+        </div>
+        <div class="text-[10px] text-slate-400 flex items-center justify-between">
+          <span>Saved permanently in LocalStorage</span>
+          <button onclick="openProfileModal()" class="text-emerald-400 hover:underline">Edit</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- COMPARISON GRAPHS SECTION (Daily, Weekly, Monthly Tabs) -->
+    <section class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-lg">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+        <div>
+          <h3 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+            <i class="fa-solid fa-chart-column text-emerald-400"></i>
+            <span>Consumption VS Needs Analytics</span>
+          </h3>
+          <p class="text-xs text-slate-400">Compare captured food nutrition against custom metabolic baseline requirements.</p>
+        </div>
+
+        <!-- Segmented Controls / Tabs -->
+        <div class="inline-flex p-1 bg-slate-950 border border-slate-800 rounded-xl">
+          <button id="tabDaily" onclick="setChartTimeframe('daily')" class="px-4 py-1.5 text-xs font-medium rounded-lg transition text-slate-950 bg-emerald-400 shadow">Daily</button>
+          <button id="tabWeekly" onclick="setChartTimeframe('weekly')" class="px-4 py-1.5 text-xs font-medium rounded-lg transition text-slate-400 hover:text-slate-200">Weekly</button>
+          <button id="tabMonthly" onclick="setChartTimeframe('monthly')" class="px-4 py-1.5 text-xs font-medium rounded-lg transition text-slate-400 hover:text-slate-200">Monthly</button>
+        </div>
+      </div>
+
+      <!-- Main Chart Container -->
+      <div class="relative h-72 md:h-80 w-full">
+        <canvas id="consumptionVSNeedsChart"></canvas>
+      </div>
+    </section>
+
+    <!-- TWO COLUMN LOWER SECTION: Hardware Activity Stream & All-time Blood History -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- LEFT: ESP32 Hardware Image Log Stream (5 cols) -->
+      <section class="lg:col-span-5 bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-100 flex items-center space-x-2">
+              <i class="fa-solid fa-microchip text-emerald-400"></i>
+              <span>Hardware Log Feed (ESP32)</span>
+            </h3>
+            <span class="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Auto-Polling 2s</span>
+          </div>
+
+          <!-- Log stream container -->
+          <div id="hardwareLogsContainer" class="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+            <!-- Dynamic logs will populate here -->
+          </div>
+        </div>
+
+        <!-- File Upload fallback for Offline / Demo use -->
+        <div class="mt-4 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs">
+          <span class="text-slate-400">Import Offline JSON/Image Logs:</span>
+          <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition font-medium">
+            <i class="fa-solid fa-file-import mr-1"></i> Upload Log
+            <input type="file" id="offlineLogInput" accept=".json" class="hidden" onchange="handleOfflineLogUpload(event)">
+          </label>
+        </div>
+      </section>
+
+      <!-- RIGHT: All-Time Health History & Blood Test Integration (7 cols) -->
+      <section class="lg:col-span-7 bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-slate-100 flex items-center space-x-2">
+              <i class="fa-solid fa-vial text-rose-400"></i>
+              <span>All-Time Health & Blood Lab History</span>
+            </h3>
+            <p class="text-xs text-slate-400">Clinical biomarker levels overlaid with dietary intake records over time.</p>
+          </div>
+          <button onclick="openBloodModal()" class="text-xs bg-rose-500/10 border border-rose-500/30 text-rose-300 hover:bg-rose-500/20 px-3 py-1.5 rounded-lg transition font-medium flex items-center space-x-1">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add Lab Report</span>
+          </button>
+        </div>
+
+        <!-- Blood Chart -->
+        <div class="relative h-64 w-full">
+          <canvas id="bloodHistoryChart"></canvas>
+        </div>
+
+        <!-- Latest Clinical Biomarkers Pills -->
+        <div id="bloodSummaryPills" class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <!-- Dynamically populated biomarkers -->
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- PROFILE EDIT MODAL -->
+  <div id="profileModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+          <i class="fa-solid fa-id-card text-emerald-400"></i>
+          <span>Edit Student Health Profile</span>
+        </h3>
+        <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="profileForm" onsubmit="saveProfile(event)" class="mt-4 space-y-4 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-400 mb-1">Age (Years)</label>
+            <input type="number" id="inputAge" min="10" max="100" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Gender</label>
+            <select id="inputGender" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-emerald-500">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-400 mb-1">Height (cm)</label>
+            <input type="number" id="inputHeight" min="100" max="250" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Weight (kg)</label>
+            <input type="number" id="inputWeight" min="30" max="250" step="0.1" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1">Activity Level</label>
+          <select id="inputActivity" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-emerald-500">
+            <option value="1.2">Sedentary (Little or no exercise)</option>
+            <option value="1.375">Lightly Active (1-3 days/week)</option>
+            <option value="1.55">Moderately Active (3-5 days/week)</option>
+            <option value="1.725">Very Active (6-7 days/week)</option>
+          </select>
+        </div>
+
+        <p class="text-[11px] text-slate-500">Calculates BMR & TDEE using Mifflin-St Jeor formula. Persists permanently in LocalStorage.</p>
+
+        <div class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
+          <button type="button" onclick="closeProfileModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition">Save Profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- BLOOD TEST DATA ENTRY MODAL -->
+  <div id="bloodModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+          <i class="fa-solid fa-notes-medical text-rose-400"></i>
+          <span>Add Clinical Blood Test Result</span>
+        </h3>
+        <button onclick="closeBloodModal()" class="text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="bloodForm" onsubmit="saveBloodTest(event)" class="mt-4 space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Test Date</label>
+          <input type="date" id="bloodDate" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-rose-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-400 mb-1">Vitamin A (mcg/dL)</label>
+            <input type="number" id="bloodVitA" step="0.1" placeholder="e.g. 45" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Vitamin D (ng/mL)</label>
+            <input type="number" id="bloodVitD" step="0.1" placeholder="e.g. 28" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-400 mb-1">Hemoglobin / Iron (g/dL)</label>
+            <input type="number" id="bloodIron" step="0.1" placeholder="e.g. 13.5" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Calcium (mg/dL)</label>
+            <input type="number" id="bloodCalcium" step="0.1" placeholder="e.g. 9.2" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeBloodModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-rose-500 hover:bg-rose-400 text-slate-950 font-bold rounded-lg transition">Save Blood Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC & APP CORE -->
+  <script>
+    // --- 1. GLOBAL STATE & LOCAL STORAGE PERSISTENCE ---
+    const STORAGE_KEY_PROFILE = 'nutrisync_student_profile_v1';
+    const STORAGE_KEY_LOGS = 'nutrisync_hardware_logs_v1';
+    const STORAGE_KEY_BLOOD = 'nutrisync_blood_history_v1';
+
+    // Default Profile Initializer
+    let userProfile = JSON.parse(localStorage.getItem(STORAGE_KEY_PROFILE)) || {
+      age: 20,
+      gender: 'male',
+      height: 175,
+      weight: 70,
+      activity: 1.55,
+      lastUpdated: new Date().toLocaleDateString()
+    };
+
+    // Default Blood Test Initializer
+    let bloodHistory = JSON.parse(localStorage.getItem(STORAGE_KEY_BLOOD)) || [
+      { date: '2026-08-15', vitA: 55, vitD: 32, iron: 14.1, calcium: 9.5 },
+      { date: '2026-09-20', vitA: 42, vitD: 24, iron: 12.8, calcium: 9.1 },
+      { date: '2026-10-18', vitA: 38, vitD: 19, iron: 11.5, calcium: 8.8 } // Vitamin D / Iron deficient trend
+    ];
+
+    // Hardware captured food log history
+    let hardwareLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_LOGS)) || [
+      {
+        id: 'log_seed_1',
+        timestamp: new Date(Date.now() - 3600000 * 4).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        food: 'Oatmeal & Berries with Almond Milk',
+        calories: 380,
+        protein: 14,
+        carbs: 62,
+        fats: 8,
+        vitA: 120, // mcg
+        vitC: 45,  // mg
+        iron: 3.5, // mg
+        calcium: 200, // mg
+        imgUrl: 'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?auto=format&fit=crop&w=150&q=80'
+      },
+      {
+        id: 'log_seed_2',
+        timestamp: new Date(Date.now() - 3600000 * 1).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        food: 'Grilled Chicken & Quinoa Rice Bowl',
+        calories: 620,
+        protein: 48,
+        carbs: 55,
+        fats: 16,
+        vitA: 310,
+        vitC: 15,
+        iron: 4.8,
+        calcium: 110,
+        imgUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=150&q=80'
+      }
+    ];
+
+    let currentChartTimeframe = 'daily';
+    let mainComparisonChart = null;
+    let mainBloodChart = null;
+    let pollInterval = null;
+
+    // --- 2. CALCULATIONS (Mifflin-St Jeor) ---
+    function computeTargets() {
+      const { age, gender, height, weight, activity } = userProfile;
+      // BMR Calculation
+      let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+      bmr += (gender === 'male') ? 5 : -161;
+
+      const tdee = Math.round(bmr * parseFloat(activity));
+      const bmi = (weight / Math.pow(height / 100, 2)).toFixed(1);
+
+      // Macro recommendations
+      const targetProtein = Math.round(weight * 1.8); // 1.8g per kg for active students
+      const targetFats = Math.round((tdee * 0.25) / 9); // 25% total calories
+      const targetCarbs = Math.round((tdee - (targetProtein * 4 + targetFats * 9)) / 4);
+
+      return {
+        bmi,
+        bmr: Math.round(bmr),
+        tdee,
+        targetProtein,
+        targetCarbs,
+        targetFats,
+        targetVitA: 900,  // mcg
+        targetVitC: 90,   // mg
+        targetIron: 18,   // mg
+        targetCalcium: 1000 // mg
+      };
+    }
+
+    // --- 3. DASHBOARD RENDER & PROFILE UPDATES ---
+    function renderDashboard() {
+      const targets = computeTargets();
+
+      // Render User Stats Cards
+      document.getElementById('profileBMI').innerText = targets.bmi;
+      document.getElementById('profileBMR').innerText = targets.bmr;
+      document.getElementById('profileTDEE').innerText = targets.tdee;
+      document.getElementById('profileLastUpdated').innerText = `Updated: ${userProfile.lastUpdated || 'Today'}`;
+
+      // Sum Today's Nutrients
+      const todayTotals = hardwareLogs.reduce((acc, curr) => {
+        acc.calories += curr.calories;
+        acc.protein += curr.protein;
+        acc.carbs += curr.carbs;
+        acc.fats += curr.fats;
+        acc.vitA += curr.vitA || 0;
+        acc.vitC += curr.vitC || 0;
+        acc.iron += curr.iron || 0;
+        acc.calcium += curr.calcium || 0;
+        return acc;
+      }, { calories: 0, protein: 0, carbs: 0, fats: 0, vitA: 0, vitC: 0, iron: 0, calcium: 0 });
+
+      // Update Top Stat Cards
+      document.getElementById('statCalories').innerHTML = `${todayTotals.calories} / ${targets.tdee} <span class="text-xs font-normal text-slate-400">kcal</span>`;
+      document.getElementById('barCalories').style.width = `${Math.min(100, (todayTotals.calories / targets.tdee) * 100)}%`;
+      document.getElementById('statCaloriesPercent').innerText = `${Math.round((todayTotals.calories / targets.tdee) * 100)}% of daily target`;
+
+      document.getElementById('statProtein').innerHTML = `${todayTotals.protein} / ${targets.targetProtein} <span class="text-xs font-normal text-slate-400">g</span>`;
+      document.getElementById('barProtein').style.width = `${Math.min(100, (todayTotals.protein / targets.targetProtein) * 100)}%`;
+      document.getElementById('statProteinPercent').innerText = `${Math.round((todayTotals.protein / targets.targetProtein) * 100)}% of daily target`;
+
+      document.getElementById('statCarbs').innerHTML = `${todayTotals.carbs} / ${targets.targetCarbs} <span class="text-xs font-normal text-slate-400">g</span>`;
+      document.getElementById('barCarbs').style.width = `${Math.min(100, (todayTotals.carbs / targets.targetCarbs) * 100)}%`;
+      document.getElementById('statCarbsPercent').innerText = `${Math.round((todayTotals.carbs / targets.targetCarbs) * 100)}% of daily target`;
+
+      document.getElementById('statFats').innerHTML = `${todayTotals.fats} / ${targets.targetFats} <span class="text-xs font-normal text-slate-400">g</span>`;
+      document.getElementById('barFats').style.width = `${Math.min(100, (todayTotals.fats / targets.targetFats) * 100)}%`;
+      document.getElementById('statFatsPercent').innerText = `${Math.round((todayTotals.fats / targets.targetFats) * 100)}% of daily target`;
+
+      // Render Hardware Stream
+      renderHardwareLogs();
+
+      // Update AI Insights Banner
+      generateAIInsights(todayTotals, targets);
+
+      // Render Charts
+      updateComparisonChart(todayTotals, targets);
+      updateBloodChart();
+    }
+
+    function renderHardwareLogs() {
+      const container = document.getElementById('hardwareLogsContainer');
+      container.innerHTML = '';
+
+      if (hardwareLogs.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">No camera captures detected yet. Press capture button on hardware.</div>`;
+        return;
+      }
+
+      hardwareLogs.slice().reverse().forEach(log => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center space-x-3 bg-slate-950/80 border border-slate-800 p-2.5 rounded-xl text-xs hover:border-slate-700 transition';
+        item.innerHTML = `
+          <img src="${log.imgUrl}" alt="${log.food}" class="w-12 h-12 rounded-lg object-cover bg-slate-800 flex-shrink-0" onerror="this.src='https://placehold.co/100x100/1e293b/a7f3d0?text=Food'">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <h4 class="font-semibold text-slate-200 truncate">${log.food}</h4>
+              <span class="text-[10px] text-slate-500">${log.timestamp}</span>
+            </div>
+            <div class="flex items-center space-x-2 text-[11px] text-slate-400 mt-0.5">
+              <span class="text-amber-400 font-medium">${log.calories} kcal</span>
+              <span>•</span>
+              <span>P: ${log.protein}g</span>
+              <span>C: ${log.carbs}g</span>
+              <span>F: ${log.fats}g</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    // --- 4. AI INSIGHTS & DEFICIENCY DETECTION ---
+    function generateAIInsights(today, targets) {
+      const latestBlood = bloodHistory[bloodHistory.length - 1];
+      let insightText = "";
+      let statusColor = "text-emerald-400";
+
+      // Check clinical lab deficiencies first
+      if (latestBlood) {
+        if (latestBlood.vitD < 20) {
+          insightText = `🚨 <strong class="text-amber-300">Deficiency Alert:</strong> Latest blood work shows severe Vitamin D deficiency (${latestBlood.vitD} ng/mL). Integrate fortified dairy/eggs & morning sunlight.`;
+        } else if (latestBlood.iron < 12.0) {
+          insightText = `⚠️ <strong class="text-amber-300">Clinical Deficiency:</strong> Low Iron level detected (${latestBlood.iron} g/dL). Pair your protein intake with spinach & legumes.`;
+        }
+      }
+
+      // If no critical blood report deficiency, look at macro goals
+      if (!insightText) {
+        const proteinPct = (today.protein / targets.targetProtein) * 100;
+        if (proteinPct >= 90) {
+          insightText = `🎉 <strong>Great job!</strong> You're exceedingly close to your daily protein target (${Math.round(proteinPct)}% achieved). Perfect for muscle recovery.`;
+        } else if (proteinPct < 40) {
+          insightText = `💡 <strong>Diet Suggestion:</strong> Protein intake is lagging today (${today.protein}g / ${targets.targetProtein}g). Consider adding eggs, tofu, or chicken to your next hardware capture.`;
+        } else {
+          insightText = `✅ <strong>Balanced Day:</strong> Micronutrient and macronutrient intakes are within safe physiological limits. Keep up the hardware meal logs!`;
+        }
+      }
+
+      document.getElementById('aiInsightText').innerHTML = insightText;
+    }
+
+    // --- 5. CHART.JS COMPARISON (Daily, Weekly, Monthly) ---
+    function setChartTimeframe(tf) {
+      currentChartTimeframe = tf;
+      ['tabDaily', 'tabWeekly', 'tabMonthly'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (id.toLowerCase().includes(tf)) {
+          btn.className = 'px-4 py-1.5 text-xs font-medium rounded-lg transition text-slate-950 bg-emerald-400 shadow';
+        } else {
+          btn.className = 'px-4 py-1.5 text-xs font-medium rounded-lg transition text-slate-400 hover:text-slate-200';
+        }
+      });
+      renderDashboard();
+    }
+
+    function updateComparisonChart(todayTotals, targets) {
+      const ctx = document.getElementById('consumptionVSNeedsChart').getContext('2d');
+
+      // Adjust multiplier based on timeframe tab
+      let multiplier = 1;
+      if (currentChartTimeframe === 'weekly') multiplier = 7;
+      if (currentChartTimeframe === 'monthly') multiplier = 30;
+
+      const labels = ['Protein (g)', 'Carbs (g)', 'Fats (g)', 'Vit A (% x10)', 'Vit C (mg)', 'Iron (mg)', 'Calcium (% x10)'];
+
+      // Scaled Consumption Data
+      const actualData = [
+        todayTotals.protein * multiplier,
+        todayTotals.carbs * multiplier,
+        todayTotals.fats * multiplier,
+        (todayTotals.vitA / targets.targetVitA) * 100, // scaled for visual parity
+        todayTotals.vitC * multiplier,
+        todayTotals.iron * multiplier,
+        (todayTotals.calcium / targets.targetCalcium) * 100
+      ];
+
+      // Scaled Targets Data
+      const targetData = [
+        targets.targetProtein * multiplier,
+        targets.targetCarbs * multiplier,
+        targets.targetFats * multiplier,
+        100, // 100% baseline
+        targets.targetVitC * multiplier,
+        targets.targetIron * multiplier,
+        100  // 100% baseline
+      ];
+
+      if (mainComparisonChart) mainComparisonChart.destroy();
+
+      mainComparisonChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: `Actual Intake (${currentChartTimeframe})`,
+              data: actualData,
+              backgroundColor: 'rgba(52, 211, 153, 0.85)', // emerald-400
+              borderRadius: 6,
+            },
+            {
+              label: `Target Requirement (${currentChartTimeframe})`,
+              data: targetData,
+              backgroundColor: 'rgba(51, 65, 85, 0.7)', // slate-700
+              borderColor: 'rgba(148, 163, 184, 0.4)',
+              borderWidth: 1,
+              borderRadius: 6,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: '#94a3b8', font: { size: 11 } }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#f8fafc',
+              bodyColor: '#cbd5e1',
+              borderColor: '#334155',
+              borderWidth: 1
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#64748b', font: { size: 11 } },
+              grid: { display: false }
+            },
+            y: {
+              ticks: { color: '#64748b', font: { size: 11 } },
+              grid: { color: 'rgba(51, 65, 85, 0.3)' }
+            }
+          }
+        }
+      });
+    }
+
+    // --- 6. ALL-TIME HEALTH & BLOOD HISTORY CHART ---
+    function updateBloodChart() {
+      const ctx = document.getElementById('bloodHistoryChart').getContext('2d');
+
+      const labels = bloodHistory.map(b => b.date);
+      const vitAData = bloodHistory.map(b => b.vitA);
+      const vitDData = bloodHistory.map(b => b.vitD);
+      const ironData = bloodHistory.map(b => b.iron);
+
+      if (mainBloodChart) mainBloodChart.destroy();
+
+      mainBloodChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Vitamin D (ng/mL)',
+              data: vitDData,
+              borderColor: '#f59e0b', // amber-500
+              backgroundColor: 'rgba(245, 158, 11, 0.1)',
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: 'Iron / Hemoglobin (g/dL)',
+              data: ironData,
+              borderColor: '#f43f5e', // rose-500
+              backgroundColor: 'transparent',
+              borderDash: [5, 5],
+              tension: 0.3
+            },
+            {
+              label: 'Vitamin A (mcg/dL)',
+              data: vitAData,
+              borderColor: '#06b6d4', // cyan-500
+              backgroundColor: 'transparent',
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#94a3b8', font: { size: 10 } } }
+          },
+          scales: {
+            x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { display: false } },
+            y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(51, 65, 85, 0.3)' } }
+          }
+        }
+      });
+
+      // Update Latest Blood Summary Pills
+      const latest = bloodHistory[bloodHistory.length - 1] || { vitA: 0, vitD: 0, iron: 0, calcium: 0 };
+      document.getElementById('bloodSummaryPills').innerHTML = `
+        <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
+          <span class="text-slate-500 block">Vit D Level</span>
+          <strong class="${latest.vitD < 20 ? 'text-rose-400' : 'text-emerald-400'}">${latest.vitD} ng/mL</strong>
+        </div>
+        <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
+          <span class="text-slate-500 block">Iron / Hgb</span>
+          <strong class="${latest.iron < 12 ? 'text-amber-400' : 'text-emerald-400'}">${latest.iron} g/dL</strong>
+        </div>
+        <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
+          <span class="text-slate-500 block">Vitamin A</span>
+          <strong class="text-cyan-400">${latest.vitA} mcg/dL</strong>
+        </div>
+        <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
+          <span class="text-slate-500 block">Calcium</span>
+          <strong class="text-slate-200">${latest.calcium} mg/dL</strong>
+        </div>
+      `;
+    }
+
+    // --- 7. ESP32 REAL-TIME HARDWARE POLLING ---
+    async function pollHardwareBackend() {
+      try {
+        const response = await fetch('http://localhost:5000/api/logs', { method: 'GET' });
+        if (response.ok) {
+          const fetchedLogs = await response.json();
+          if (Array.isArray(fetchedLogs) && fetchedLogs.length > 0) {
+            // Update internal state if new logs received
+            hardwareLogs = fetchedLogs;
+            localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(hardwareLogs));
+            renderDashboard();
+          }
+          document.getElementById('syncIndicator').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
+          document.getElementById('syncStatusText').innerText = "ESP32 Hardware Connected";
+        }
+      } catch (err) {
+        // Fallback gracefully when local backend isn't actively running
+        document.getElementById('syncIndicator').className = "w-2.5 h-2.5 rounded-full bg-amber-500";
+        document.getElementById('syncStatusText').innerText = "Standalone / Offline Mode";
+      }
+    }
+
+    // --- 8. MODAL HANDLERS & SIMULATORS ---
+    function openProfileModal() {
+      document.getElementById('inputAge').value = userProfile.age;
+      document.getElementById('inputGender').value = userProfile.gender;
+      document.getElementById('inputHeight').value = userProfile.height;
+      document.getElementById('inputWeight').value = userProfile.weight;
+      document.getElementById('inputActivity').value = userProfile.activity;
+      document.getElementById('profileModal').classList.remove('hidden');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    function saveProfile(e) {
+      e.preventDefault();
+      userProfile = {
+        age: parseInt(document.getElementById('inputAge').value),
+        gender: document.getElementById('inputGender').value,
+        height: parseFloat(document.getElementById('inputHeight').value),
+        weight: parseFloat(document.getElementById('inputWeight').value),
+        activity: parseFloat(document.getElementById('inputActivity').value),
+        lastUpdated: new Date().toLocaleDateString()
+      };
+      localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(userProfile));
+      closeProfileModal();
+      renderDashboard();
+    }
+
+    function openBloodModal() {
+      document.getElementById('bloodDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('bloodModal').classList.remove('hidden');
+    }
+
+    function closeBloodModal() {
+      document.getElementById('bloodModal').classList.add('hidden');
+    }
+
+    function saveBloodTest(e) {
+      e.preventDefault();
+      const newReport = {
+        date: document.getElementById('bloodDate').value,
+        vitA: parseFloat(document.getElementById('bloodVitA').value),
+        vitD: parseFloat(document.getElementById('bloodVitD').value),
+        iron: parseFloat(document.getElementById('bloodIron').value),
+        calcium: parseFloat(document.getElementById('bloodCalcium').value)
+      };
+      bloodHistory.push(newReport);
+      localStorage.setItem(STORAGE_KEY_BLOOD, JSON.stringify(bloodHistory));
+      closeBloodModal();
+      renderDashboard();
+    }
+
+    // Manual Hardware Trigger Simulator
+    function triggerSimulatedHardwareLog() {
+      const sampleMeals = [
+        { food: 'Avocado Toast & Eggs', calories: 420, protein: 18, carbs: 32, fats: 22, vitA: 200, vitC: 10, iron: 2.1, calcium: 80, imgUrl: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=150&q=80' },
+        { food: 'Salmon & Steamed Broccoli', calories: 550, protein: 42, carbs: 12, fats: 28, vitA: 450, vitC: 85, iron: 3.2, calcium: 120, imgUrl: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=150&q=80' },
+        { food: 'Greek Yogurt & Honey Snack', calories: 220, protein: 17, carbs: 24, fats: 4, vitA: 80, vitC: 5, iron: 0.5, calcium: 260, imgUrl: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=150&q=80' }
+      ];
+
+      const picked = sampleMeals[Math.floor(Math.random() * sampleMeals.length)];
+      picked.id = 'log_' + Date.now();
+      picked.timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      hardwareLogs.push(picked);
+      localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(hardwareLogs));
+      renderDashboard();
+    }
+
+    // Offline JSON Importer
+    function handleOfflineLogUpload(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (Array.isArray(data)) {
+            hardwareLogs = data;
+          } else {
+            hardwareLogs.push(data);
+          }
+          localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(hardwareLogs));
+          renderDashboard();
+        } catch(err) {
+          alert("Invalid JSON log file format.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Initialization on Page Load
+    window.onload = function() {
+      renderDashboard();
+      // Start 2-second interval polling for real-time ESP32 backend integration
+      pollHardwareBackend();
+      pollInterval = setInterval(pollHardwareBackend, 2000);
+    };
+  </script>
+</body>
+</html>
